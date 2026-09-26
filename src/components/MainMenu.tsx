@@ -1,11 +1,12 @@
 import React from 'react';
-import { Play, Settings, Trophy, ShieldAlert, Zap, Compass, Car } from 'lucide-react';
+import { Play, Settings, Trophy, ShieldAlert, Zap, Compass, Car, Smartphone } from 'lucide-react';
 
 interface MainMenuProps {
   bestScore: number;
   highestLevel: number;
   onPlay: () => void;
   onOpenSettings: () => void;
+  onOpenInstall: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
@@ -13,6 +14,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   highestLevel,
   onPlay,
   onOpenSettings,
+  onOpenInstall,
 }) => {
   return (
     <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md text-slate-100 overflow-y-auto">
@@ -58,26 +60,37 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs mb-8">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 w-full max-w-sm mb-6 sm:mb-8">
           <button
             onClick={onPlay}
-            className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all shadow-lg shadow-emerald-950/40 text-sm cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all shadow-lg shadow-emerald-950/40 text-sm sm:text-base cursor-pointer touch-manipulation"
           >
             <Play className="w-4 h-4 fill-white" />
             <span>Start Game</span>
-            <span className="text-[10px] bg-emerald-700/80 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider ml-1">
-              Enter / Space
+            <span className="hidden sm:inline-block text-[10px] bg-emerald-700/80 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider ml-1">
+              Enter
             </span>
           </button>
 
-          <button
-            onClick={onOpenSettings}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium text-slate-300 bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 transition-colors text-sm"
-            title="Audio & Gameplay Settings"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="sm:hidden">Settings</span>
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={onOpenInstall}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-semibold text-emerald-300 bg-emerald-950/70 hover:bg-emerald-900/70 border border-emerald-500/40 active:scale-95 transition-all text-xs sm:text-sm cursor-pointer touch-manipulation"
+              title="Install APK / Add to Mobile"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>Install App</span>
+            </button>
+
+            <button
+              onClick={onOpenSettings}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 active:scale-95 transition-all text-xs sm:text-sm cursor-pointer touch-manipulation"
+              title="Audio & Gameplay Settings"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
+            </button>
+          </div>
         </div>
 
         {/* Feature Highlights Grid */}

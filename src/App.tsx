@@ -16,6 +16,7 @@ import { GameOverModal } from './components/GameOverModal';
 import { LevelCompleteModal } from './components/LevelCompleteModal';
 import { SettingsModal } from './components/SettingsModal';
 import { PauseModal } from './components/PauseModal';
+import { PWAInstallModal } from './components/PWAInstallModal';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -26,6 +27,7 @@ export default function App() {
 
   const [gameState, setGameState] = useState<GameState>('MENU');
   const [showSettings, setShowSettings] = useState(false);
+  const [showInstall, setShowInstall] = useState(false);
   const [gameSpeed, setGameSpeed] = useState<number>(1.0);
 
   // Synced HUD state
@@ -246,44 +248,44 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
 
-  // Direct Mouse Click on Canvas to trigger lights
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Handle Touch or Mouse Click on Canvas
+  const handleInteraction = (clientX: number, clientY: number) => {
     if (gameState !== 'PLAYING' || !canvasRef.current || !engineRef.current) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleX = CANVAS_WIDTH / rect.width;
     const scaleY = CANVAS_HEIGHT / rect.height;
-    const clickX = (e.clientX - rect.left) * scaleX;
-    const clickY = (e.clientY - rect.top) * scaleY;
+    const clickX = (clientX - rect.left) * scaleX;
+    const clickY = (clientY - rect.top) * scaleY;
 
     // Check proximity to traffic light posts or stop lines
     let clickedAxis: Axis | null = null;
 
-    // North post or stop line
+    // North post or stop line (expanded hit zone for fingers)
     if (
-      Math.hypot(clickX - LIGHT_POST_POSITIONS.N.x, clickY - LIGHT_POST_POSITIONS.N.y) < 45 ||
-      (Math.abs(clickX - 415) < 40 && Math.abs(clickY - STOP_LINES.N) < 40)
+      Math.hypot(clickX - LIGHT_POST_POSITIONS.N.x, clickY - LIGHT_POST_POSITIONS.N.y) < 60 ||
+      (Math.abs(clickX - 415) < 55 && Math.abs(clickY - STOP_LINES.N) < 55)
     ) {
       clickedAxis = 'NS';
     }
     // South post or stop line
     else if (
-      Math.hypot(clickX - LIGHT_POST_POSITIONS.S.x, clickY - LIGHT_POST_POSITIONS.S.y) < 45 ||
-      (Math.abs(clickX - 485) < 40 && Math.abs(clickY - STOP_LINES.S) < 40)
+      Math.hypot(clickX - LIGHT_POST_POSITIONS.S.x, clickY - LIGHT_POST_POSITIONS.S.y) < 60 ||
+      (Math.abs(clickX - 485) < 55 && Math.abs(clickY - STOP_LINES.S) < 55)
     ) {
       clickedAxis = 'NS';
     }
     // West post or stop line
     else if (
-      Math.hypot(clickX - LIGHT_POST_POSITIONS.W.x, clickY - LIGHT_POST_POSITIONS.W.y) < 45 ||
-      (Math.abs(clickX - STOP_LINES.W) < 40 && Math.abs(clickY - 385) < 40)
+      Math.hypot(clickX - LIGHT_POST_POSITIONS.W.x, clickY - LIGHT_POST_POSITIONS.W.y) < 60 ||
+      (Math.abs(clickX - STOP_LINES.W) < 55 && Math.abs(clickY - 385) < 55)
     ) {
       clickedAxis = 'EW';
     }
     // East post or stop line
     else if (
-      Math.hypot(clickX - LIGHT_POST_POSITIONS.E.x, clickY - LIGHT_POST_POSITIONS.E.y) < 45 ||
-      (Math.abs(clickX - STOP_LINES.E) < 40 && Math.abs(clickY - 315) < 40)
+      Math.hypot(clickX - LIGHT_POST_POSITIONS.E.x, clickY - LIGHT_POST_POSITIONS.E.y) < 60 ||
+      (Math.abs(clickX - STOP_LINES.E) < 55 && Math.abs(clickY - 315) < 55)
     ) {
       clickedAxis = 'EW';
     }
@@ -292,9 +294,20 @@ export default function App() {
       engineRef.current.requestAxis(clickedAxis);
     } else {
       // Clicking central intersection also acts as quick corridor toggle
-      if (Math.abs(clickX - CANVAS_WIDTH / 2) < 70 && Math.abs(clickY - CANVAS_HEIGHT / 2) < 70) {
+      if (Math.abs(clickX - CANVAS_WIDTH / 2) < 90 && Math.abs(clickY - CANVAS_HEIGHT / 2) < 90) {
         engineRef.current.toggleAxis();
       }
+    }
+  };
+
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    handleInteraction(e.clientX, e.clientY);
+  };
+
+  const handleCanvasTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      handleInteraction(touch.clientX, touch.clientY);
     }
   };
 
@@ -307,7 +320,7 @@ export default function App() {
     <div className="relative w-full h-screen bg-slate-950 flex flex-col items-center justify-center overflow-hidden select-none font-sans">
       {/* Game Viewport Container */}
       <main
-        className="relative flex items-center justify-center max-w-full max-h-full transition-transform"
+        className="relative flex items-center justify-center w-full h-full p-0 sm:p-2 transition-transform overflow-hidden"
         style={{
           transform: `translate(${shakeX}px, ${shakeY}px)`,
         }}
@@ -317,7 +330,8 @@ export default function App() {
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
           onClick={handleCanvasClick}
-          className="rounded-2xl shadow-2xl border border-slate-800/80 cursor-pointer object-contain max-w-[98vw] max-h-[96vh] aspect-[9/7]"
+          onTouchStart={handleCanvasTouchStart}
+          className="rounded-none sm:rounded-2xl shadow-2xl border-0 sm:border border-slate-800/80 cursor-pointer object-contain w-full h-full max-w-[100vw] max-h-[100dvh] touch-none"
         />
 
         {/* In-Game HUD & Controls */}
@@ -353,6 +367,7 @@ export default function App() {
             highestLevel={stats.highestLevel}
             onPlay={handleStartGame}
             onOpenSettings={() => setShowSettings(true)}
+            onOpenInstall={() => setShowInstall(true)}
           />
         )}
 
@@ -389,6 +404,11 @@ export default function App() {
             onClose={() => setShowSettings(false)}
           />
         )}
+
+        <PWAInstallModal
+          isOpen={showInstall}
+          onClose={() => setShowInstall(false)}
+        />
       </main>
     </div>
   );
