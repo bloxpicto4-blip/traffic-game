@@ -1,0 +1,6 @@
+{
+  "name": "Crossroad Chaos - 2D Traffic Control",
+  "description": "A polished endless 2D top-down traffic management arcade game. Manage traffic lights, prevent collisions, handle emergency vehicles, and survive endless escalating levels.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
